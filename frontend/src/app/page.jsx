@@ -5,8 +5,23 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import * as Babel from '@babel/standalone';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { motion } from 'framer-motion';
 
 export default function Home() {
+  // Framer Motion variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 32 },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 70, damping: 20 } },
+  };
+  const sectionVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { delay: 0.15, duration: 0.5 } },
+  };
+  const buttonVariants = {
+    hover: { scale: 1.07, boxShadow: '0 4px 14px 0 rgba(59,130,246,0.15)' },
+    tap: { scale: 0.97 }
+  };
+
   const [prompt, setPrompt] = useState('');
   const [generationType, setGenerationType] = useState('html');
   const [generatedCode, setGeneratedCode] = useState('');
@@ -279,143 +294,165 @@ const renderReactComponent = (code) => {
   };
 
   return (
-    <div className="flex min-h-screen">
-      {/* Left Section - Input */}
-      <div className="w-1/4 h-screen bg-gray-900 p-6 fixed left-0 overflow-y-auto">
-        <h1 className="text-3xl font-bold text-white text-center mb-6">
-          Webpage Generator
-        </h1>
-
-        <form onSubmit={handleSubmit} className="mb-6">
-          <input
-            type="text"
-            placeholder="Describe your webpage or component..."
+    <motion.div
+      className="flex min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 dark:from-gray-900 dark:to-gray-800"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* Left Section - Controls */}
+      <motion.div
+        className={`fixed left-0 top-0 h-screen w-1/4 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shadow-xl flex flex-col items-center py-10 z-20 transition-all duration-300 ${showOptions ? 'shadow-2xl scale-105' : ''}`}
+        variants={sectionVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.h1 className="text-3xl font-extrabold text-blue-700 dark:text-blue-400 text-center mb-7 tracking-tight drop-shadow-lg" initial={{opacity: 0, y: -10}} animate={{opacity: 1, y: 0}} transition={{duration: 0.4}}>
+          AI Code Builder
+        </motion.h1>
+        <form onSubmit={handleSubmit} className="w-full px-6 flex flex-col gap-4 mt-2">
+          <label className="font-semibold text-gray-700 dark:text-gray-200 mb-1" htmlFor="prompt">
+            Prompt
+          </label>
+          <motion.textarea
+            id="prompt"
             value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 mb-2"
+            onChange={e => setPrompt(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-400 focus:border-blue-500 p-3 min-h-[90px] resize-none transition-all duration-200 shadow-sm bg-white/80 dark:bg-gray-800 dark:text-white"
+            placeholder="Describe what you want to generate..."
+            required
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.4 }}
           />
 
-          {/* Generation Type Selector */}
-          <div className="mb-4">
-            <label className="block text-white mb-2">Generation Type</label>
-            <select
-              value={generationType}
-              onChange={(e) => setGenerationType(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              <option value="html">HTML Page</option>
-              <option value="react">React Component</option>
-            </select>
-          </div>
-
-          {/* Theme Options Button */}
-          <div className="mb-4">
-            <button
+          <label className="font-semibold text-gray-700 dark:text-gray-200 mt-4 mb-1">Generation Type</label>
+          <div className="flex gap-4">
+            <motion.button
               type="button"
-              onClick={() => setShowOptions(!showOptions)}
-              className="w-full bg-gray-700 text-white py-2 rounded hover:bg-gray-600 mb-2"
+              onClick={() => setGenerationType('html')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors duration-150 border ${generationType === 'html' ? 'bg-blue-500 text-white border-blue-500' : 'bg-gray-200 text-gray-700 border-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600'} shadow-sm`}
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
             >
-              {showOptions ? 'Hide Theme Options' : 'Show Theme Options'}
-            </button>
-            
-            {showOptions && (
-              <div className="bg-gray-800 p-3 rounded mt-2 shadow">
-                {/* Theme selector */}
-                <div className="mb-3">
-                  <label className="block text-white text-sm mb-1">Theme</label>
-                  <select
-                    value={selectedTheme}
-                    onChange={(e) => setSelectedTheme(e.target.value)}
-                    className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  >
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                    <option value="colorful">Colorful Gradient</option>
-                  </select>
-                </div>
-                
-                {/* Font selector */}
-                <div className="mb-3">
-                  <label className="block text-white text-sm mb-1">Font Family</label>
-                  <select
-                    value={selectedFont}
-                    onChange={(e) => setSelectedFont(e.target.value)}
-                    className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  >
-                    <option value="sans">Sans-serif</option>
-                    <option value="serif">Serif</option>
-                    <option value="mono">Monospace</option>
-                  </select>
-                </div>
-                
-                {/* Color picker */}
-                <div className="mb-2">
-                  <label className="block text-white text-sm mb-1">Primary Color</label>
-                  <div className="flex items-center">
-                    <input
-                      type="color"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="w-10 h-10 mr-2 border-0 rounded p-0 cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="flex-1 p-2 border border-gray-600 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
+              HTML
+            </motion.button>
+            <motion.button
+              type="button"
+              onClick={() => setGenerationType('react')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors duration-150 border ${generationType === 'react' ? 'bg-blue-500 text-white border-blue-500' : 'bg-gray-200 text-gray-700 border-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600'} shadow-sm`}
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
+            >
+              React
+            </motion.button>
           </div>
 
-          <button
+          <motion.button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-            disabled={loading || !prompt}
+            className="mt-6 px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold shadow-md transition-all duration-200 focus:ring-4 focus:ring-blue-300 focus:outline-none"
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
+            disabled={loading}
           >
             {loading ? 'Generating...' : 'Generate'}
-          </button>
+          </motion.button>
         </form>
-
-        {error && (
-          <div className="mt-4 bg-red-100 p-4 rounded">
-            <p className="text-red-700 font-bold">Error:</p>
-            <pre className="text-red-600 overflow-x-auto">{error}</pre>
-          </div>
+        <motion.button
+          type="button"
+          onClick={() => setShowOptions(!showOptions)}
+          className="mt-4 px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-100 border border-gray-300 dark:border-gray-600 font-medium shadow hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
+        >
+          {showOptions ? 'Hide Theme Options' : 'Show Theme Options'}
+        </motion.button>
+        {showOptions && (
+          <motion.div className="w-full px-6 mt-4 space-y-4" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} transition={{duration:0.4}}>
+            <div>
+              <label className="block text-gray-700 dark:text-gray-200 text-sm mb-1">Theme</label>
+              <select
+                value={selectedTheme}
+                onChange={(e) => setSelectedTheme(e.target.value)}
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+              >
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="colorful">Colorful Gradient</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-gray-700 dark:text-gray-200 text-sm mb-1">Font Family</label>
+              <select
+                value={selectedFont}
+                onChange={(e) => setSelectedFont(e.target.value)}
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+              >
+                <option value="sans">Sans-serif</option>
+                <option value="serif">Serif</option>
+                <option value="mono">Monospace</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-gray-700 dark:text-gray-200 text-sm mb-1">Primary Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={primaryColor}
+                  onChange={(e) => setPrimaryColor(e.target.value)}
+                  className="w-10 h-10 border-0 rounded p-0 cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={primaryColor}
+                  onChange={(e) => setPrimaryColor(e.target.value)}
+                  className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+            </div>
+          </motion.div>
         )}
-      </div>
+        {error && (
+          <motion.div className="mt-4 bg-red-100 dark:bg-red-900 p-4 rounded shadow-md w-full" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} transition={{duration:0.3}}>
+            <p className="text-red-700 dark:text-red-200 font-bold">Error:</p>
+            <pre className="text-red-600 dark:text-red-100 overflow-x-auto">{error}</pre>
+          </motion.div>
+        )}
+      </motion.div>
 
       {/* Right Section - Preview/Code */}
       <div className="w-3/4 min-h-screen ml-[25%]">
         {generatedCode && !error ? (
-          <div className="h-screen flex flex-col">
-            <div className="bg-white border-b shadow-sm p-4 flex justify-between items-center">
+          <motion.div className="h-screen flex flex-col" initial={{opacity:0}} animate={{opacity:1}} transition={{duration:0.5}}>
+            <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm p-4 flex justify-between items-center">
               {modelUsed && (
-                <div className="text-gray-600">
+                <div className="text-gray-600 dark:text-gray-300">
                   Model Used: {modelUsed}
                 </div>
               )}
               <div className="flex">
-                <button
+                <motion.button
                   onClick={() => setActiveTab('preview')}
-                  className={`px-4 py-2 mr-2 rounded ${activeTab === 'preview'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-200 text-gray-700'
-                    }`}
+                  className={`px-4 py-2 mr-2 rounded font-semibold transition-colors duration-150 ${activeTab === 'preview' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-100'}`}
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
                 >
                   Preview
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   onClick={() => setActiveTab('code')}
-                  className={`px-4 py-2 rounded ${activeTab === 'code'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-200 text-gray-700'
-                    }`}
+                  className={`px-4 py-2 rounded font-semibold transition-colors duration-150 ${activeTab === 'code' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-100'}`}
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
                 >
                   Edit Code
-                </button>
+                </motion.button>
               </div>
             </div>
 
@@ -441,7 +478,7 @@ const renderReactComponent = (code) => {
                     <div
                       ref={previewRef}
                       className="w-full h-full overflow-auto"
-                    />
+                    ></div>
                   )}
                 </div>
               ) : (
@@ -466,23 +503,26 @@ const renderReactComponent = (code) => {
                     </SyntaxHighlighter>
                   </div>
                   <div className="p-2 bg-gray-800 flex justify-end">
-                    <button 
+                    <motion.button 
                       onClick={applyChanges}
-                      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 font-semibold"
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
                     >
                       Apply Changes
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         ) : (
-          <div className="h-screen flex items-center justify-center bg-gray-50">
-            <p className="text-gray-500">Generated content will appear here</p>
+          <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <p className="text-gray-500 dark:text-gray-300">Generated content will appear here</p>
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

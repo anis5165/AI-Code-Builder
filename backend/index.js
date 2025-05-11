@@ -28,7 +28,7 @@ app.post("/generate", async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     let fullPrompt;
     if (type === "react") {
@@ -81,7 +81,7 @@ app.post("/generate", async (req, res) => {
     const response = await result.response;
     const generatedContent = response.text();
 
-    res.status(200).json({ content: generatedContent, type, modelUsed: "gemini-pro" });
+    res.status(200).json({ content: generatedContent, type, modelUsed: "gemini-1.5-pro" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
